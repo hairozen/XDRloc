@@ -55,11 +55,15 @@ public class MainActivity extends AppCompatActivity implements
      * Represents a geographical location.
      */
     protected Location mLastLocation;
+    protected TelephonyManager mTelephonyManager;
+    protected GsmCellLocation mCellLocation;
 
     protected String mLatitudeLabel;
     protected String mLongitudeLabel;
+    protected String mCellIdLabel;
     protected TextView mLatitudeText;
     protected TextView mLongitudeText;
+    protected TextView mCellIdText;
 
 
 
@@ -67,11 +71,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
-
+        mCellIdLabel = getResources().getString(R.string.cellid_label);
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
         mLongitudeLabel = getResources().getString(R.string.longitude_label);
         mLatitudeText = (TextView) findViewById((R.id.latitude_text));
         mLongitudeText = (TextView) findViewById((R.id.longitude_text));
+        mCellIdText = (TextView) findViewById((R.id.cellid_text));
 
         buildGoogleApiClient();
     }
@@ -106,11 +111,10 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        GsmCellLocation cellLocation = (GsmCellLocation)telephonyManager.getCellLocation();
-
-        int cellid= cellLocation.getCid();
-        int celllac = cellLocation.getLac();
+        //mTelephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        //mCellLocation = (GsmCellLocation)mTelephonyManager.getCellLocation();
+        //int cellid= 120;//mCellLocation.getCid();
+        //int celllac = mCellLocation.getLac();
         // Provides a simple way of getting a device's location and is well suited for
         // applications that do not require a fine-grained location and that do not need location
         // updates. Gets the best and most recent location currently available, which may be null
@@ -121,7 +125,10 @@ public class MainActivity extends AppCompatActivity implements
                     mLastLocation.getLatitude()));
             mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
                     mLastLocation.getLongitude()));
-        } else {
+            //mCellIdText.setText(String.format("%s: %f", mCellIdLabel, cellid));
+        }
+        else
+        {
             Toast.makeText(this, R.string.no_location_detected, Toast.LENGTH_LONG).show();
         }
     }
