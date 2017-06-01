@@ -105,16 +105,25 @@ public class MainActivity extends AppCompatActivity implements
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
-    protected void startLocationUpdates() {
+    protected void startLocationUpdates()
+    {
+        boolean res = false;
         if(mGoogleApiClient != null) {
             try {
                 createLocationRequest();
                 LocationServices.FusedLocationApi.requestLocationUpdates(
                         mGoogleApiClient, mLocationRequest, this);
-            }catch (Exception e)
-            {
-                Log.i(TAG,e.getMessage());
+                res = true;
             }
+            catch (Exception e)
+            {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+
+        if (res)
+        {
+            Toast.makeText(this, "Updated location started successfully!", Toast.LENGTH_LONG).show();
         }
     }
 
