@@ -16,14 +16,13 @@
 
 package com.google.android.gms.location.sample.basiclocationsample;
 
-import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,18 +30,15 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-/**
- * Location sample.
- *
- * Demonstrates use of the Location API to retrieve the last known location for a device.
- * This sample uses Google Play services (GoogleApiClient) but does not need to authenticate a user.
- * See https://github.com/googlesamples/android-google-accounts/tree/master/QuickStart if you are
- * also using APIs that need authentication.
- */
+import java.text.DateFormat;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener {
+        ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     protected static final String TAG = "MainActivity";
 
@@ -57,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements
     protected Location mLastLocation;
     protected TelephonyManager mTelephonyManager;
     protected GsmCellLocation mCellLocation;
+    protected String mLastUpdateTime;
+    protected LocationRequest mLocationRequest;
 
     protected String mLatitudeLabel;
     protected String mLongitudeLabel;
@@ -71,14 +69,22 @@ public class MainActivity extends AppCompatActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+
         mCellIdLabel = getResources().getString(R.string.cellid_label);
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
         mLongitudeLabel = getResources().getString(R.string.longitude_label);
         mLatitudeText = (TextView) findViewById((R.id.latitude_text));
         mLongitudeText = (TextView) findViewById((R.id.longitude_text));
-        mCellIdText = (TextView) findViewById((R.id.cellid_text));
+        mCellIdText = (TextView) findViewById((R.id.cell_id_text));
 
         buildGoogleApiClient();
+
+        final View button = findViewById(R.id.update_btn);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startLocationUpdates();
+            }
+        });
     }
 
     /**
@@ -90,6 +96,33 @@ public class MainActivity extends AppCompatActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+    }
+
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(20000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    protected void startLocationUpdates() {
+        if(mGoogleApiClient != null) {
+            try {
+                createLocationRequest();
+                LocationServices.FusedLocationApi.requestLocationUpdates(
+                        mGoogleApiClient, mLocationRequest, this);
+            }catch (Exception e)
+            {
+                Log.i(TAG,e.getMessage());
+            }
+        }
+    }
+
+    protected void stopLocationUpdates() {
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(
+                    mGoogleApiClient, this);
+        }
     }
 
     @Override
@@ -111,14 +144,6 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        //mTelephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        //mCellLocation = (GsmCellLocation)mTelephonyManager.getCellLocation();
-        //int cellid= 120;//mCellLocation.getCid();
-        //int celllac = mCellLocation.getLac();
-        // Provides a simple way of getting a device's location and is well suited for
-        // applications that do not require a fine-grained location and that do not need location
-        // updates. Gets the best and most recent location currently available, which may be null
-        // in rare cases when a location is not available.
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
@@ -147,5 +172,19 @@ public class MainActivity extends AppCompatActivity implements
         // attempt to re-establish the connection.
         Log.i(TAG, "Connection suspended");
         mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        if (mLastLocation != null) {
+            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+            mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
+                    mLastLocation.getLatitude()));
+            mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
+                    mLastLocation.getLongitude()));
+            Toast.makeText(this, "Updated: " + mLastUpdateTime, Toast.LENGTH_SHORT).show();
+            //mCellIdText.setText(String.format("%s: %f", mCellIdLabel, cellid));
+        }
     }
 }

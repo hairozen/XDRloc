@@ -43,7 +43,7 @@
         android:textSize="@dimen/lat_long_text_size" />
 
     <TextView
-        android:id="@+id/cellid_text"
+        android:id="@+id/cell_id_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
@@ -51,4 +51,13 @@
         android:layout_marginTop="@dimen/text_margin"
         android:textIsSelectable="true"
         android:textSize="@dimen/lat_long_text_size" />
+
+    <Button
+        android:id="@+id/update_btn"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:text="@string/update_btn_text"
+        android:onClick="selfDestruct" />
 </LinearLayout>
