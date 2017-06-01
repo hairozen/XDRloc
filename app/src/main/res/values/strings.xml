@@ -20,6 +20,7 @@
     <string name="longitude_label">Longitude</string>
     <string name="cellid_label">Cell Id</string>
     <string name="update_btn_text">Start Updates</string>
+    <string name="last_updtae_text">Last Update</string>
     <string name="no_location_detected">
         No location detected. Make sure location is enabled on the device.
     </string>

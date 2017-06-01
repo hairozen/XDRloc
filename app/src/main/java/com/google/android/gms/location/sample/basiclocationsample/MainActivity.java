@@ -16,6 +16,7 @@
 
 package com.google.android.gms.location.sample.basiclocationsample;
 
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -54,9 +55,11 @@ public class MainActivity extends AppCompatActivity implements
     protected String mLatitudeLabel;
     protected String mLongitudeLabel;
     protected String mCellIdLabel;
+    protected String mLastUpdateLabel;
     protected TextView mLatitudeText;
     protected TextView mLongitudeText;
     protected TextView mCellIdText;
+    protected TextView mLastUpdatedText;
     protected Button mIsUpdateBtn;
 
 
@@ -69,10 +72,13 @@ public class MainActivity extends AppCompatActivity implements
         mCellIdLabel = getResources().getString(R.string.cellid_label);
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
         mLongitudeLabel = getResources().getString(R.string.longitude_label);
+        mLastUpdateLabel = getResources().getString(R.string.last_updtae_text);
         mLatitudeText = (TextView) findViewById((R.id.latitude_text));
         mLongitudeText = (TextView) findViewById((R.id.longitude_text));
         mCellIdText = (TextView) findViewById((R.id.cell_id_text));
+        mLastUpdatedText = (TextView) findViewById((R.id.last_update_text));
         mIsUpdate = false;
+        mTelephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 
         buildGoogleApiClient();
 
@@ -155,17 +161,24 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastLocation != null) {
-            mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
-                    mLastLocation.getLatitude()));
-            mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
-                    mLastLocation.getLongitude()));
-            //mCellIdText.setText(String.format("%s: %f", mCellIdLabel, cellid));
+        try{
+            mCellLocation = (GsmCellLocation)mTelephonyManager.getCellLocation();
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if (mLastLocation != null) {
+                mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
+                        mLastLocation.getLatitude()));
+                mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
+                        mLastLocation.getLongitude()));
+                mCellIdText.setText(String.format("%s: %s", mCellIdLabel, mCellLocation.getCid()));
+            }
+            else
+            {
+                Toast.makeText(this, R.string.no_location_detected, Toast.LENGTH_LONG).show();
+            }
         }
-        else
+        catch (Exception e)
         {
-            Toast.makeText(this, R.string.no_location_detected, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -187,15 +200,23 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation = location;
-        if (mLastLocation != null) {
-            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-            mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
-                    mLastLocation.getLatitude()));
-            mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
-                    mLastLocation.getLongitude()));
-            Toast.makeText(this, "Location Updated: " + mLastUpdateTime, Toast.LENGTH_SHORT).show();
-            //mCellIdText.setText(String.format("%s: %f", mCellIdLabel, cellid));
+        try {
+            mCellLocation = (GsmCellLocation) mTelephonyManager.getCellLocation();
+            mLastLocation = location;
+            if (mLastLocation != null) {
+                mLastUpdateTime = DateFormat.getDateTimeInstance().format(new Date());
+                mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
+                        mLastLocation.getLatitude()));
+                mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
+                        mLastLocation.getLongitude()));
+                mLastUpdatedText.setText(mLastUpdateTime);
+                mCellIdText.setText(String.format("%s: %s", mCellIdLabel, mCellLocation.getCid()));
+                Toast.makeText(this, "Location Updated: " + mLastUpdateTime, Toast.LENGTH_SHORT).show();
+            }
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }
