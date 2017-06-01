@@ -23,6 +23,7 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,19 +43,13 @@ public class MainActivity extends AppCompatActivity implements
 
     protected static final String TAG = "MainActivity";
 
-    /**
-     * Provides the entry point to Google Play services.
-     */
     protected GoogleApiClient mGoogleApiClient;
-
-    /**
-     * Represents a geographical location.
-     */
     protected Location mLastLocation;
     protected TelephonyManager mTelephonyManager;
     protected GsmCellLocation mCellLocation;
     protected String mLastUpdateTime;
     protected LocationRequest mLocationRequest;
+    protected boolean mIsUpdate;
 
     protected String mLatitudeLabel;
     protected String mLongitudeLabel;
@@ -62,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements
     protected TextView mLatitudeText;
     protected TextView mLongitudeText;
     protected TextView mCellIdText;
+    protected Button mIsUpdateBtn;
 
 
 
@@ -76,20 +72,18 @@ public class MainActivity extends AppCompatActivity implements
         mLatitudeText = (TextView) findViewById((R.id.latitude_text));
         mLongitudeText = (TextView) findViewById((R.id.longitude_text));
         mCellIdText = (TextView) findViewById((R.id.cell_id_text));
+        mIsUpdate = false;
 
         buildGoogleApiClient();
 
-        final View button = findViewById(R.id.update_btn);
-        button.setOnClickListener(new View.OnClickListener() {
+        mIsUpdateBtn = (Button) findViewById(R.id.update_btn);
+        mIsUpdateBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 startLocationUpdates();
             }
         });
     }
 
-    /**
-     * Builds a GoogleApiClient. Uses the addApi() method to request the LocationServices API.
-     */
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -101,36 +95,44 @@ public class MainActivity extends AppCompatActivity implements
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(20000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setFastestInterval(20000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     protected void startLocationUpdates()
     {
-        boolean res = false;
-        if(mGoogleApiClient != null) {
-            try {
-                createLocationRequest();
-                LocationServices.FusedLocationApi.requestLocationUpdates(
-                        mGoogleApiClient, mLocationRequest, this);
-                res = true;
-            }
-            catch (Exception e)
-            {
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        if(!mIsUpdate) {
+            if (mGoogleApiClient != null) {
+                try {
+                    createLocationRequest();
+                    LocationServices.FusedLocationApi.requestLocationUpdates(
+                            mGoogleApiClient, mLocationRequest, this);
+                    mIsUpdate = true;
+                    mIsUpdateBtn.setText("Stop Updates");
+                    Toast.makeText(this, "Location Registration started successfully!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
         }
-
-        if (res)
-        {
-            Toast.makeText(this, "Updated location started successfully!", Toast.LENGTH_LONG).show();
+        else {
+            mIsUpdate = false;
+            stopLocationUpdates();
         }
     }
 
     protected void stopLocationUpdates() {
         if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(
-                    mGoogleApiClient, this);
+            try {
+                LocationServices.FusedLocationApi.removeLocationUpdates(
+                        mGoogleApiClient, this);
+                Toast.makeText(this, "Location Registration stopped!", Toast.LENGTH_LONG).show();
+                mIsUpdateBtn.setText("Start Updates");
+            }
+            catch (Exception e)
+            {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -192,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements
                     mLastLocation.getLatitude()));
             mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
                     mLastLocation.getLongitude()));
-            Toast.makeText(this, "Updated: " + mLastUpdateTime, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Location Updated: " + mLastUpdateTime, Toast.LENGTH_SHORT).show();
             //mCellIdText.setText(String.format("%s: %f", mCellIdLabel, cellid));
         }
     }
