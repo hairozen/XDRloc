@@ -17,6 +17,7 @@
 package com.google.android.gms.location.sample.basiclocationsample;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements
         mCellIdLabel = getResources().getString(R.string.cellid_label);
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
         mLongitudeLabel = getResources().getString(R.string.longitude_label);
-        mLastUpdateLabel = getResources().getString(R.string.last_updtae_text);
+        mLastUpdateLabel = getResources().getString(R.string.last_updtae_label);
         mLatitudeText = (TextView) findViewById((R.id.latitude_text));
         mLongitudeText = (TextView) findViewById((R.id.longitude_text));
         mCellIdText = (TextView) findViewById((R.id.cell_id_text));
@@ -209,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements
                         mLastLocation.getLatitude()));
                 mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
                         mLastLocation.getLongitude()));
-                mLastUpdatedText.setText(mLastUpdateTime);
+                mLastUpdatedText.setText(String.format("%s: %s",mLastUpdateLabel,mLastUpdateTime));
                 mCellIdText.setText(String.format("%s: %s", mCellIdLabel, mCellLocation.getCid()));
                 Toast.makeText(this, "Location Updated: " + mLastUpdateTime, Toast.LENGTH_SHORT).show();
             }
@@ -218,5 +219,13 @@ public class MainActivity extends AppCompatActivity implements
         {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void startService(View view) {
+        startService(new Intent(getBaseContext(), UpdateService.class));
+    }
+
+    public void stopService(View view) {
+        stopService(new Intent(getBaseContext(), UpdateService.class));
     }
 }
