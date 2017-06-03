@@ -44,6 +44,7 @@ limitations under the License.
             </intent-filter>
         </activity>
 
-        <service android:name=".UpdateService" />
+        <service android:name=".XdrUpdateService"
+            android:exported="false"/>
     </application>
 </manifest>

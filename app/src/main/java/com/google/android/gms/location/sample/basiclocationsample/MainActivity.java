@@ -221,11 +221,12 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    public void startService(View view) {
-        startService(new Intent(getBaseContext(), UpdateService.class));
-    }
-
-    public void stopService(View view) {
-        stopService(new Intent(getBaseContext(), UpdateService.class));
+    public void lunchUpdatesService() {
+        // Construct our Intent specifying the Service
+        Intent i = new Intent(this, XdrUpdateService.class);
+        // Add extras to the bundle
+        i.putExtra("foo", "bar");
+        // Start the service
+        startService(i);
     }
 }
