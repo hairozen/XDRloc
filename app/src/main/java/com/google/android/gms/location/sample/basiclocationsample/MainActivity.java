@@ -86,7 +86,8 @@ public class MainActivity extends AppCompatActivity implements
         mIsUpdateBtn = (Button) findViewById(R.id.update_btn);
         mIsUpdateBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startLocationUpdates();
+//                startLocationUpdates();
+                onClickLocBtn();
             }
         });
     }
@@ -228,5 +229,19 @@ public class MainActivity extends AppCompatActivity implements
         i.putExtra("foo", "bar");
         // Start the service
         startService(i);
+    }
+
+    public void onClickLocBtn(){
+        Intent intent = new Intent(MainActivity.this, XdrUpdateService.class);
+
+        if(!mIsUpdate) {
+            startService(intent);
+            mIsUpdate = true;
+        }
+        else
+        {
+            stopService(intent);
+            mIsUpdate = false;
+        }
     }
 }
