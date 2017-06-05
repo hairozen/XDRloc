@@ -16,41 +16,18 @@
 
 package com.google.android.gms.location.sample.basiclocationsample;
 
-import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.TelephonyManager;
-import android.telephony.gsm.GsmCellLocation;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-
-import java.text.DateFormat;
-import java.util.Date;
-
-public class MainActivity extends AppCompatActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
+public class MainActivity extends AppCompatActivity
+        {
 
     protected static final String TAG = "MainActivity";
 
-    protected GoogleApiClient mGoogleApiClient;
-    protected Location mLastLocation;
-    protected TelephonyManager mTelephonyManager;
-    protected GsmCellLocation mCellLocation;
-    protected String mLastUpdateTime;
-    protected LocationRequest mLocationRequest;
     protected boolean mIsUpdate;
 
     protected String mLatitudeLabel;
@@ -62,8 +39,6 @@ public class MainActivity extends AppCompatActivity implements
     protected TextView mCellIdText;
     protected TextView mLastUpdatedText;
     protected Button mIsUpdateBtn;
-
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,156 +54,13 @@ public class MainActivity extends AppCompatActivity implements
         mCellIdText = (TextView) findViewById((R.id.cell_id_text));
         mLastUpdatedText = (TextView) findViewById((R.id.last_update_text));
         mIsUpdate = false;
-        mTelephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-
-        buildGoogleApiClient();
 
         mIsUpdateBtn = (Button) findViewById(R.id.update_btn);
         mIsUpdateBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-//                startLocationUpdates();
                 onClickLocBtn();
             }
         });
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    protected void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(20000);
-        mLocationRequest.setFastestInterval(20000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-    protected void startLocationUpdates()
-    {
-        if(!mIsUpdate) {
-            if (mGoogleApiClient != null) {
-                try {
-                    createLocationRequest();
-                    LocationServices.FusedLocationApi.requestLocationUpdates(
-                            mGoogleApiClient, mLocationRequest, this);
-                    mIsUpdate = true;
-                    mIsUpdateBtn.setText("Stop Updates");
-                    Toast.makeText(this, "Location Registration started successfully!", Toast.LENGTH_LONG).show();
-                } catch (Exception e) {
-                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-        else {
-            mIsUpdate = false;
-            stopLocationUpdates();
-        }
-    }
-
-    protected void stopLocationUpdates() {
-        if (mGoogleApiClient != null) {
-            try {
-                LocationServices.FusedLocationApi.removeLocationUpdates(
-                        mGoogleApiClient, this);
-                Toast.makeText(this, "Location Registration stopped!", Toast.LENGTH_LONG).show();
-                mIsUpdateBtn.setText("Start Updates");
-            }
-            catch (Exception e)
-            {
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
-        }
-    }
-
-    /**
-     * Runs when a GoogleApiClient object successfully connects.
-     */
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        try{
-            mCellLocation = (GsmCellLocation)mTelephonyManager.getCellLocation();
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mLastLocation != null) {
-                mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
-                        mLastLocation.getLatitude()));
-                mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
-                        mLastLocation.getLongitude()));
-                mCellIdText.setText(String.format("%s: %s", mCellIdLabel, mCellLocation.getCid()));
-            }
-            else
-            {
-                Toast.makeText(this, R.string.no_location_detected, Toast.LENGTH_LONG).show();
-            }
-        }
-        catch (Exception e)
-        {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-        // onConnectionFailed.
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-    }
-
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
-        Log.i(TAG, "Connection suspended");
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        try {
-            mCellLocation = (GsmCellLocation) mTelephonyManager.getCellLocation();
-            mLastLocation = location;
-            if (mLastLocation != null) {
-                mLastUpdateTime = DateFormat.getDateTimeInstance().format(new Date());
-                mLatitudeText.setText(String.format("%s: %f", mLatitudeLabel,
-                        mLastLocation.getLatitude()));
-                mLongitudeText.setText(String.format("%s: %f", mLongitudeLabel,
-                        mLastLocation.getLongitude()));
-                mLastUpdatedText.setText(String.format("%s: %s",mLastUpdateLabel,mLastUpdateTime));
-                mCellIdText.setText(String.format("%s: %s", mCellIdLabel, mCellLocation.getCid()));
-                Toast.makeText(this, "Location Updated: " + mLastUpdateTime, Toast.LENGTH_SHORT).show();
-            }
-        }
-        catch (Exception e)
-        {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void lunchUpdatesService() {
-        // Construct our Intent specifying the Service
-        Intent i = new Intent(this, XdrUpdateService.class);
-        // Add extras to the bundle
-        i.putExtra("foo", "bar");
-        // Start the service
-        startService(i);
     }
 
     public void onClickLocBtn(){
@@ -236,11 +68,13 @@ public class MainActivity extends AppCompatActivity implements
 
         if(!mIsUpdate) {
             startService(intent);
+            mIsUpdateBtn.setText("Stop Updates");
             mIsUpdate = true;
         }
         else
         {
             stopService(intent);
+            mIsUpdateBtn.setText("Start Updates");
             mIsUpdate = false;
         }
     }
