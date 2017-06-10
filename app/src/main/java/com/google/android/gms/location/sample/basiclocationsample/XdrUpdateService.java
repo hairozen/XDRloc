@@ -34,15 +34,14 @@ public class XdrUpdateService extends Service {
     protected int mLac;
     protected int mMCC;
     protected int mMNC;
-    protected String mImei;
-    protected String mImsi;
-    protected String mMSISDN;
     protected String mLastUpdateTime;
     protected Calendar mStartTime;
     protected Calendar mCurrentTime;
     protected long mSecInterval;
     protected int mLastIntervalHour;
     protected int mLastIntervalMin;
+    protected String mOutputFilePath;
+    protected File mOutFile;
 
     private boolean isRunning = false;
 
@@ -52,7 +51,9 @@ public class XdrUpdateService extends Service {
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         isRunning = true;
-        mSecInterval = 60;
+        mSecInterval = 100;
+        mOutputFilePath = "/sdcard/xdrloc_locations.txt";
+        createNoteFile();
     }
 
     @Override
@@ -60,7 +61,7 @@ public class XdrUpdateService extends Service {
 
         Toast.makeText(this, "Service onStartCommand", Toast.LENGTH_LONG).show();
         Log.i(TAG, "Service onStartCommand");
-
+        generateNoteOnSD("Servicer Strating!");
         mStartTime = Calendar.getInstance();
         mCurrentTime = Calendar.getInstance();
         mLastIntervalHour = 0;
@@ -76,10 +77,11 @@ public class XdrUpdateService extends Service {
                     long duration = TimeUnit.MILLISECONDS.toSeconds(currentMillis - startMillis);
                     double res = duration % mSecInterval;
 
-                    if ( res == 0 && (mCurrentTime.get(Calendar.HOUR) != mLastIntervalHour && mCurrentTime.get(Calendar.MINUTE) != mLastIntervalMin)) {
+                    if (res == 0 /*&& mCurrentTime.get(Calendar.MINUTE) != mLastIntervalMin*/) {
                         mLastIntervalHour = Calendar.getInstance().get(Calendar.HOUR);
                         mLastIntervalMin = Calendar.getInstance().get(Calendar.MINUTE);
-                        checkLocation();
+                        generateNoteOnSD("Before run");
+                        //checkLocation();
                     }
 
                     mCurrentTime = Calendar.getInstance();
@@ -106,6 +108,7 @@ public class XdrUpdateService extends Service {
 
     private void checkLocation() {
         try {
+            generateNoteOnSD("checkLocation run");
             mCellLocation = (GsmCellLocation) mTelephonyManager.getCellLocation();
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
@@ -115,12 +118,9 @@ public class XdrUpdateService extends Service {
                 mLongitude = mLastLocation.getLongitude();
                 mCellId = mCellLocation.getCid();
                 mLac = mCellLocation.getLac();
-                mMCC = Integer.parseInt(networkOperation.substring(0, 3));
-                mMNC = Integer.parseInt(networkOperation.substring(3));
-                mImei = "";//mTelephonyManager.getDeviceId();
-                mImsi = "";//mTelephonyManager.getSubscriberId();
-                mMSISDN = "";//mTelephonyManager.getLine1Number();
-                generateNoteOnSD(String.format("%s,%d,%s,%s,%f,%f,%d,%d,%d:", mLastUpdateTime, mMNC, mImsi, mMSISDN, mLatitude, mLongitude, mCellId, mLac, mMCC));
+                mMCC = 0;//Integer.parseInt(networkOperation.substring(0, 3));
+                mMNC = 0;//Integer.parseInt(networkOperation.substring(3));
+                generateNoteOnSD(String.format("%s,%f,%f,%d,%d,%d,%d:", mLastUpdateTime, mLatitude, mLongitude, mCellId, mLac, mMCC, mMNC));
                 Log.i(TAG, "Location Updated: " + mLastUpdateTime);
             }
         } catch (Exception e) {
@@ -129,12 +129,24 @@ public class XdrUpdateService extends Service {
         }
     }
 
+    public void createNoteFile() {
+        try {
+            File mOutFile = new File(mOutputFilePath);
+            if (!mOutFile.exists()) {
+                mOutFile.createNewFile();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void generateNoteOnSD(String body) {
         try {
-            File testFile = new File("/sdcard/mysdfile.txt");
-            if (!testFile.exists())
-                testFile.createNewFile();
-            BufferedWriter writer = new BufferedWriter(new FileWriter(testFile, true /*append*/));
+            if (mOutFile == null) {
+                createNoteFile();
+            }
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(mOutFile, true /*append*/));
             writer.write(body);
             writer.close();
         } catch (IOException e) {
