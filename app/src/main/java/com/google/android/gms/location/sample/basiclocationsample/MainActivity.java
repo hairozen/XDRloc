@@ -1,12 +1,12 @@
 /**
  * Copyright 2014 Google Inc. All Rights Reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,8 @@
 
 package com.google.android.gms.location.sample.basiclocationsample;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -23,8 +25,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity
-        {
+public class MainActivity extends AppCompatActivity {
 
     protected static final String TAG = "MainActivity";
 
@@ -61,21 +62,33 @@ public class MainActivity extends AppCompatActivity
                 onClickLocBtn();
             }
         });
+
+        if(isServiceRunning(XdrUpdateService.class)){
+            mIsUpdateBtn.setText("Stop Updates");
+        }
     }
 
-    public void onClickLocBtn(){
+    public void onClickLocBtn() {
         Intent intent = new Intent(MainActivity.this, XdrUpdateService.class);
 
-        if(!mIsUpdate) {
+        if (!isServiceRunning(XdrUpdateService.class)) {
             startService(intent);
             mIsUpdateBtn.setText("Stop Updates");
             mIsUpdate = true;
-        }
-        else
-        {
+        } else {
             stopService(intent);
             mIsUpdateBtn.setText("Start Updates");
             mIsUpdate = false;
         }
+    }
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

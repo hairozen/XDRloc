@@ -1,5 +1,6 @@
 package com.google.android.gms.location.sample.basiclocationsample;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -11,10 +12,6 @@ import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -28,21 +25,12 @@ public class XdrUpdateService extends Service {
     protected LocationManager mLocationManager;
     protected GsmCellLocation mCellLocation;
 
-    protected double mLatitude;
-    protected double mLongitude;
-    protected int mCellId;
-    protected int mLac;
-    protected int mMCC;
-    protected int mMNC;
-    protected String mLastUpdateTime;
     protected Calendar mStartTime;
     protected Calendar mCurrentTime;
     protected long mSecInterval;
     protected int mLastIntervalHour;
     protected int mLastIntervalMin;
-    protected String mOutputFilePath;
-    protected File mOutFile;
-
+    protected LocationData mLocationData;
     private boolean isRunning = false;
 
     @Override
@@ -51,9 +39,8 @@ public class XdrUpdateService extends Service {
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         isRunning = true;
-        mSecInterval = 100;
-        mOutputFilePath = "/sdcard/xdrloc_locations.txt";
-        createNoteFile();
+        mSecInterval = 60;
+        mLocationData = new LocationData();
     }
 
     @Override
@@ -61,7 +48,6 @@ public class XdrUpdateService extends Service {
 
         Toast.makeText(this, "Service onStartCommand", Toast.LENGTH_LONG).show();
         Log.i(TAG, "Service onStartCommand");
-        generateNoteOnSD("Servicer Strating!");
         mStartTime = Calendar.getInstance();
         mCurrentTime = Calendar.getInstance();
         mLastIntervalHour = 0;
@@ -77,11 +63,10 @@ public class XdrUpdateService extends Service {
                     long duration = TimeUnit.MILLISECONDS.toSeconds(currentMillis - startMillis);
                     double res = duration % mSecInterval;
 
-                    if (res == 0 /*&& mCurrentTime.get(Calendar.MINUTE) != mLastIntervalMin*/) {
+                    if (res == 0 && mCurrentTime.get(Calendar.MINUTE) != mLastIntervalMin) {
                         mLastIntervalHour = Calendar.getInstance().get(Calendar.HOUR);
                         mLastIntervalMin = Calendar.getInstance().get(Calendar.MINUTE);
-                        generateNoteOnSD("Before run");
-                        //checkLocation();
+                        checkLocation();
                     }
 
                     mCurrentTime = Calendar.getInstance();
@@ -108,49 +93,20 @@ public class XdrUpdateService extends Service {
 
     private void checkLocation() {
         try {
-            generateNoteOnSD("checkLocation run");
             mCellLocation = (GsmCellLocation) mTelephonyManager.getCellLocation();
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
             if (mLastLocation != null) {
-                mLastUpdateTime = DateFormat.getDateTimeInstance().format(new Date());
-                mLatitude = mLastLocation.getLatitude();
-                mLongitude = mLastLocation.getLongitude();
-                mCellId = mCellLocation.getCid();
-                mLac = mCellLocation.getLac();
-                mMCC = 0;//Integer.parseInt(networkOperation.substring(0, 3));
-                mMNC = 0;//Integer.parseInt(networkOperation.substring(3));
-                generateNoteOnSD(String.format("%s,%f,%f,%d,%d,%d,%d:", mLastUpdateTime, mLatitude, mLongitude, mCellId, mLac, mMCC, mMNC));
-                Log.i(TAG, "Location Updated: " + mLastUpdateTime);
+                mLocationData.setmLastUpdateTime(DateFormat.getDateTimeInstance().format(new Date()));
+                mLocationData.setmCellId(mCellLocation.getCid());
+                mLocationData.setmLac(mCellLocation.getLac());
+                mLocationData.setmMCC(Integer.parseInt(networkOperation.substring(0, 3)));
+                mLocationData.setmMNC(Integer.parseInt(networkOperation.substring(3)));
+                mLocationData.writeLocationsOnSD();
             }
         } catch (Exception e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
             Log.e(TAG, e.getMessage());
-        }
-    }
-
-    public void createNoteFile() {
-        try {
-            File mOutFile = new File(mOutputFilePath);
-            if (!mOutFile.exists()) {
-                mOutFile.createNewFile();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void generateNoteOnSD(String body) {
-        try {
-            if (mOutFile == null) {
-                createNoteFile();
-            }
-
-            BufferedWriter writer = new BufferedWriter(new FileWriter(mOutFile, true /*append*/));
-            writer.write(body);
-            writer.close();
-        } catch (IOException e) {
-            Log.e("ReadWriteFile", "Unable to write to the TestFile.txt file.");
         }
     }
 
