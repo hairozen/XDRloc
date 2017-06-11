@@ -15,8 +15,18 @@ public class LocationData {
     protected int mLac;
     protected int mMCC;
     protected int mMNC;
-    protected String mLastUpdateTime;
+    protected Long mLastUpdateTime;
+    protected String mImei;
+    protected String mImsi;
     protected String mOutputFilePath = "/sdcard/xdrloc_locations.txt";
+
+    public String getmImsi() {
+        return mImsi;
+    }
+
+    public void setmImsi(String mImsi) {
+        this.mImsi = mImsi;
+    }
 
     public String getmOutputFilePath() {
         return mOutputFilePath;
@@ -70,11 +80,19 @@ public class LocationData {
         this.mMNC = mMNC;
     }
 
-    public String getmLastUpdateTime() {
+    public String getmImei() {
+        return mImei;
+    }
+
+    public void setmImei(String mImei) {
+        this.mImei = mImei;
+    }
+
+    public Long getmLastUpdateTime() {
         return mLastUpdateTime;
     }
 
-    public void setmLastUpdateTime(String mLastUpdateTime) {
+    public void setmLastUpdateTime(Long mLastUpdateTime) {
         this.mLastUpdateTime = mLastUpdateTime;
     }
 
@@ -97,7 +115,7 @@ public class LocationData {
     public void writeLocationsOnSD() {
         try {
             File outFile = new File(mOutputFilePath);
-            String body = String.format("%s,%d,%d,%d,%d:", mLastUpdateTime, mCellId, mLac, mMCC, mMNC);
+            String body = String.format("%s,%d,%d,%d,%d:", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC);
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
             writer.write(body);
             writer.close();

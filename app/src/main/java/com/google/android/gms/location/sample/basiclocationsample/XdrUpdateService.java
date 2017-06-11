@@ -1,6 +1,5 @@
 package com.google.android.gms.location.sample.basiclocationsample;
 
-import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -12,9 +11,7 @@ import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.text.DateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class XdrUpdateService extends Service {
@@ -97,11 +94,14 @@ public class XdrUpdateService extends Service {
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
             if (mLastLocation != null) {
-                mLocationData.setmLastUpdateTime(DateFormat.getDateTimeInstance().format(new Date()));
+                mLocationData.setmLastUpdateTime((long) Calendar.getInstance().get(Calendar.MILLISECOND));
                 mLocationData.setmCellId(mCellLocation.getCid());
                 mLocationData.setmLac(mCellLocation.getLac());
                 mLocationData.setmMCC(Integer.parseInt(networkOperation.substring(0, 3)));
                 mLocationData.setmMNC(Integer.parseInt(networkOperation.substring(3)));
+                mLocationData.setmImei(mTelephonyManager.getDeviceId());
+                mLocationData.setmImsi(mTelephonyManager.getSubscriberId());
+                
                 mLocationData.writeLocationsOnSD();
             }
         } catch (Exception e) {
