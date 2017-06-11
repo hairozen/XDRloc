@@ -18,7 +18,16 @@ public class LocationData {
     protected Long mLastUpdateTime;
     protected String mImei;
     protected String mImsi;
+    protected String mMsisdn;
     protected String mOutputFilePath = "/sdcard/xdrloc_locations.txt";
+
+    public String getmMsisdn() {
+        return mMsisdn;
+    }
+
+    public void setmMsisdn(String mMsisdn) {
+        this.mMsisdn = mMsisdn;
+    }
 
     public String getmImsi() {
         return mImsi;
@@ -115,7 +124,7 @@ public class LocationData {
     public void writeLocationsOnSD() {
         try {
             File outFile = new File(mOutputFilePath);
-            String body = String.format("%s,%d,%d,%d,%d:", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC);
+            String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC, mImei, mImsi, mMsisdn);
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
             writer.write(body);
             writer.close();

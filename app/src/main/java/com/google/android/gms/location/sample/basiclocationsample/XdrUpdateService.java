@@ -36,7 +36,7 @@ public class XdrUpdateService extends Service {
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         isRunning = true;
-        mSecInterval = 60;
+        mSecInterval = 3600;
         mLocationData = new LocationData();
     }
 
@@ -94,13 +94,14 @@ public class XdrUpdateService extends Service {
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
             if (mLastLocation != null) {
-                mLocationData.setmLastUpdateTime((long) Calendar.getInstance().get(Calendar.MILLISECOND));
+                mLocationData.setmLastUpdateTime(System.currentTimeMillis() % 1000);
                 mLocationData.setmCellId(mCellLocation.getCid());
                 mLocationData.setmLac(mCellLocation.getLac());
                 mLocationData.setmMCC(Integer.parseInt(networkOperation.substring(0, 3)));
                 mLocationData.setmMNC(Integer.parseInt(networkOperation.substring(3)));
                 mLocationData.setmImei(mTelephonyManager.getDeviceId());
                 mLocationData.setmImsi(mTelephonyManager.getSubscriberId());
+                mLocationData.setmMsisdn(mTelephonyManager.getLine1Number());
                 
                 mLocationData.writeLocationsOnSD();
             }
