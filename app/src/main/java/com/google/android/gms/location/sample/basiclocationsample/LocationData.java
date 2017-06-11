@@ -124,7 +124,7 @@ public class LocationData {
     public void writeLocationsOnSD() {
         try {
             File outFile = new File(mOutputFilePath);
-            String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC, mImei, mImsi, mMsisdn);
+            String body = String.format("%s,%d,%d,%d,%d,%s,%s;", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC, mImei, mImsi);
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
             writer.write(body);
             writer.close();

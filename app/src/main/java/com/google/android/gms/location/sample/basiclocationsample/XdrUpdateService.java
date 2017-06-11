@@ -43,7 +43,7 @@ public class XdrUpdateService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Toast.makeText(this, "Service onStartCommand", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "XDRloc Service Started!", Toast.LENGTH_LONG).show();
         Log.i(TAG, "Service onStartCommand");
         mStartTime = Calendar.getInstance();
         mCurrentTime = Calendar.getInstance();
@@ -84,7 +84,7 @@ public class XdrUpdateService extends Service {
     @Override
     public void onDestroy() {
         isRunning = false;
-        Toast.makeText(this, "Service onDestroy", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "XDRloc Service Stopped!", Toast.LENGTH_LONG).show();
         Log.i(TAG, "Service onDestroy");
     }
 
@@ -94,15 +94,14 @@ public class XdrUpdateService extends Service {
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
             if (mLastLocation != null) {
-                mLocationData.setmLastUpdateTime(System.currentTimeMillis() % 1000);
+                mLocationData.setmLastUpdateTime(System.currentTimeMillis());
                 mLocationData.setmCellId(mCellLocation.getCid());
                 mLocationData.setmLac(mCellLocation.getLac());
                 mLocationData.setmMCC(Integer.parseInt(networkOperation.substring(0, 3)));
                 mLocationData.setmMNC(Integer.parseInt(networkOperation.substring(3)));
                 mLocationData.setmImei(mTelephonyManager.getDeviceId());
                 mLocationData.setmImsi(mTelephonyManager.getSubscriberId());
-                mLocationData.setmMsisdn(mTelephonyManager.getLine1Number());
-                
+
                 mLocationData.writeLocationsOnSD();
             }
         } catch (Exception e) {
