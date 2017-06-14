@@ -2,8 +2,10 @@ package com.google.android.gms.location.sample.basiclocationsample;
 
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -19,7 +21,8 @@ public class LocationData {
     protected String mImei;
     protected String mImsi;
     protected String mMsisdn;
-    protected String mOutputFilePath = "/sdcard/xdrloc_locations.txt";
+    protected String mOutputFilePath = "/sdcard/xdrloc/xdrloc_locations.txt";
+    protected String mMsisdnFilePath = "/sdcard/xdrloc/xdrloc_msisdn.txt";
 
     public String getmMsisdn() {
         return mMsisdn;
@@ -124,7 +127,7 @@ public class LocationData {
     public void writeLocationsOnSD() {
         try {
             File outFile = new File(mOutputFilePath);
-            String body = String.format("%s,%d,%d,%d,%d,%s,%s;", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC, mImei, mImsi);
+            String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC, mImei, mImsi, readMsidsnFromFile());
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
             writer.write(body);
             writer.close();
@@ -133,15 +136,46 @@ public class LocationData {
         }
     }
 
-    public void writeNotesOnSD(String body) {
+    private String readMsidsnFromFile(){
+        String result = "";
+        BufferedReader br = null;
+        FileReader fr = null;
+
         try {
-            File outFile = new File(mOutputFilePath);
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
-            writer.write(body);
-            writer.close();
-        } catch (IOException e) {
-            Log.e("ReadWriteFile", "Unable to write to the TestFile.txt file.");
+            File file = new File(mMsisdnFilePath);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            fr = new FileReader(file);
+            br = new BufferedReader(fr);
+
+            String sCurrentLine;
+
+            br = new BufferedReader(new FileReader(file));
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                stringBuilder.append(sCurrentLine);
+            }
+
+            result = stringBuilder.toString();
+
+        } catch (Exception e) {
+            result = "";
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null)
+                    br.close();
+                if (fr != null)
+                    fr.close();
+            } catch (Exception ex) {
+                result = "";
+                ex.printStackTrace();
+            }
         }
+
+        return result;
     }
+
 
 }

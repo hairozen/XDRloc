@@ -15,12 +15,9 @@
   limitations under the License.
 -->
 <resources>
-    <string name="app_name">XDRloc v1.0</string>
-    <string name="latitude_label">Latitude</string>
-    <string name="longitude_label">Longitude</string>
-    <string name="cellid_label">Cell Id</string>
+    <string name="app_name">XDRloc</string>
+    <string name="msisdn_label">Plesae insert your phone number: (MSISDN)</string>
     <string name="update_btn_text">Start Updates</string>
-    <string name="last_updtae_label">Last Update</string>
     <string name="no_location_detected">
         No location detected. Make sure location is enabled on the device.
     </string>

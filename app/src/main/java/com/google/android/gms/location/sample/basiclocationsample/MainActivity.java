@@ -23,38 +23,38 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.PrintWriter;
 
 public class MainActivity extends AppCompatActivity {
 
     protected static final String TAG = "MainActivity";
 
     protected boolean mIsUpdate;
-
-    protected String mLatitudeLabel;
-    protected String mLongitudeLabel;
-    protected String mCellIdLabel;
-    protected String mLastUpdateLabel;
-    protected TextView mLatitudeText;
-    protected TextView mLongitudeText;
-    protected TextView mCellIdText;
-    protected TextView mLastUpdatedText;
+    protected String mMsisdnFilePath = "/sdcard/xdrloc/xdrloc_msisdn.txt";
     protected Button mIsUpdateBtn;
+    protected EditText mMsisdnEditText;
+    protected String mAppDirPath = "/sdcard/xdrloc/";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
-        mCellIdLabel = getResources().getString(R.string.cellid_label);
-        mLatitudeLabel = getResources().getString(R.string.latitude_label);
-        mLongitudeLabel = getResources().getString(R.string.longitude_label);
-        mLastUpdateLabel = getResources().getString(R.string.last_updtae_label);
-        mLatitudeText = (TextView) findViewById((R.id.latitude_text));
-        mLongitudeText = (TextView) findViewById((R.id.longitude_text));
-        mCellIdText = (TextView) findViewById((R.id.cell_id_text));
-        mLastUpdatedText = (TextView) findViewById((R.id.last_update_text));
         mIsUpdate = false;
+        mMsisdnEditText = (EditText) findViewById(R.id.msisdn_text);
+
+        createAppDir();
+
+        String msisdnFromFile = readMSISDNFromFile();
+        if (msisdnFromFile != null) {
+            mMsisdnEditText.setText(msisdnFromFile);
+        }
 
         mIsUpdateBtn = (Button) findViewById(R.id.update_btn);
         mIsUpdateBtn.setOnClickListener(new View.OnClickListener() {
@@ -63,22 +63,81 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(isServiceRunning(XdrUpdateService.class)){
+        if (isServiceRunning(XdrUpdateService.class)) {
             mIsUpdateBtn.setText("Stop Updates");
         }
     }
 
     public void onClickLocBtn() {
         Intent intent = new Intent(MainActivity.this, XdrUpdateService.class);
+        String msisdnInput = readMSISDNFromFile();
 
         if (!isServiceRunning(XdrUpdateService.class)) {
-            startService(intent);
-            mIsUpdateBtn.setText("Stop Updates");
-            mIsUpdate = true;
+            if (mMsisdnEditText.getText() == null) {
+                Toast.makeText(this, "Please Insert your phone number!", Toast.LENGTH_LONG).show();
+            } else {
+                saveMSISDNFromFile();
+                startService(intent);
+                mIsUpdateBtn.setText("Stop Updates");
+                mIsUpdate = true;
+            }
         } else {
+
             stopService(intent);
             mIsUpdateBtn.setText("Start Updates");
             mIsUpdate = false;
+        }
+    }
+
+    private String readMSISDNFromFile() {
+        String result = null;
+        BufferedReader br = null;
+        FileReader fr = null;
+
+        try {
+            File file = new File(mMsisdnFilePath);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            fr = new FileReader(file);
+            br = new BufferedReader(fr);
+
+            String sCurrentLine;
+
+            br = new BufferedReader(new FileReader(file));
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                stringBuilder.append(sCurrentLine);
+            }
+
+            result = stringBuilder.toString();
+
+        } catch (Exception e) {
+            result = null;
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null)
+                    br.close();
+                if (fr != null)
+                    fr.close();
+            } catch (Exception ex) {
+                result = null;
+                ex.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
+    private void saveMSISDNFromFile() {
+        try {
+            PrintWriter out = new PrintWriter(mMsisdnFilePath);
+            out.print("");
+            out.print(mMsisdnEditText.getText());
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -91,4 +150,16 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    private void createAppDir() {
+        File file = new File(mAppDirPath);
+        if (!file.exists()) {
+            if (file.mkdir()) {
+                Toast.makeText(this, "Directory is created!", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Failed to create directory!", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
 }
+

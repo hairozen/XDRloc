@@ -36,7 +36,7 @@ public class XdrUpdateService extends Service {
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         isRunning = true;
-        mSecInterval = 3600;
+        mSecInterval = 60;
         mLocationData = new LocationData();
     }
 
