@@ -11,6 +11,10 @@ import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
@@ -44,6 +48,7 @@ public class XdrUpdateService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         Toast.makeText(this, "XDRloc Service Started!", Toast.LENGTH_LONG).show();
+        writeLogToFile("XDRloc Service Started!\n");
         Log.i(TAG, "Service onStartCommand");
         mStartTime = Calendar.getInstance();
         mCurrentTime = Calendar.getInstance();
@@ -85,11 +90,13 @@ public class XdrUpdateService extends Service {
     public void onDestroy() {
         isRunning = false;
         Toast.makeText(this, "XDRloc Service Stopped!", Toast.LENGTH_LONG).show();
+        writeLogToFile("XDRloc Service Stopped!\n");
         Log.i(TAG, "Service onDestroy");
     }
 
     private void checkLocation() {
         try {
+            writeLogToFile("Check Location\n");
             mCellLocation = (GsmCellLocation) mTelephonyManager.getCellLocation();
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
@@ -105,8 +112,21 @@ public class XdrUpdateService extends Service {
                 mLocationData.writeLocationsOnSD();
             }
         } catch (Exception e) {
+            writeLogToFile(e.getMessage());
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
             Log.e(TAG, e.getMessage());
+        }
+    }
+
+    private void writeLogToFile(String log)
+    {
+        try {
+            File outFile = new File("/sdcard/xdrloc/xdrloc_locations.txt");
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
+            writer.write(log);
+            writer.close();
+        } catch (IOException e) {
+            Log.e("ReadWriteFile", "Unable to write to the location to file.");
         }
     }
 

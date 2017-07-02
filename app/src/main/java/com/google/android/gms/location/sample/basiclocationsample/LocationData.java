@@ -132,7 +132,7 @@ public class LocationData {
             writer.write(body);
             writer.close();
         } catch (IOException e) {
-            Log.e("ReadWriteFile", "Unable to write to the TestFile.txt file.");
+            Log.e("ReadWriteFile", "Unable to write to the location to file.");
         }
     }
 
