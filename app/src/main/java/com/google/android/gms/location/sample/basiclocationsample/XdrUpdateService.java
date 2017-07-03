@@ -11,8 +11,10 @@ import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
@@ -102,13 +104,18 @@ public class XdrUpdateService extends Service {
             String networkOperation = mTelephonyManager.getNetworkOperator();
             if (mLastLocation != null) {
                 mLocationData.setmLastUpdateTime(System.currentTimeMillis());
+                writeLogToFile(mLocationData.getmLastUpdateTime().toString());
                 mLocationData.setmCellId(mCellLocation.getCid());
+                //writeLogToFile(mLocationData.getmCellId());
                 mLocationData.setmLac(mCellLocation.getLac());
                 mLocationData.setmMCC(Integer.parseInt(networkOperation.substring(0, 3)));
                 mLocationData.setmMNC(Integer.parseInt(networkOperation.substring(3)));
                 mLocationData.setmImei(mTelephonyManager.getDeviceId());
                 mLocationData.setmImsi(mTelephonyManager.getSubscriberId());
 
+                String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLocationData.getmLastUpdateTime().toString(), mLocationData.getmCellId(), mLocationData.getmLac(),
+                        mLocationData.getmMCC(), mLocationData.getmMNC(), mLocationData.getmImei(), mLocationData.getmImsi(), readMsidsnFromFile());
+                writeLogToFile("Test:::::"+mLocationData.getmLastUpdateTime().toString());
                 mLocationData.writeLocationsOnSD();
             }
         } catch (Exception e) {
@@ -118,8 +125,7 @@ public class XdrUpdateService extends Service {
         }
     }
 
-    private void writeLogToFile(String log)
-    {
+    private void writeLogToFile(String log) {
         try {
             File outFile = new File("/sdcard/xdrloc/xdrloc_locations.txt");
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
@@ -128,6 +134,47 @@ public class XdrUpdateService extends Service {
         } catch (IOException e) {
             Log.e("ReadWriteFile", "Unable to write to the location to file.");
         }
+    }
+
+    private String readMsidsnFromFile() {
+        String result = "";
+        BufferedReader br = null;
+        FileReader fr = null;
+
+        try {
+            File file = new File("/sdcard/xdrloc/xdrloc_msisdn.txt");
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            fr = new FileReader(file);
+            br = new BufferedReader(fr);
+
+            String sCurrentLine;
+
+            br = new BufferedReader(new FileReader(file));
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                stringBuilder.append(sCurrentLine);
+            }
+
+            result = stringBuilder.toString();
+
+        } catch (Exception e) {
+            result = "";
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null)
+                    br.close();
+                if (fr != null)
+                    fr.close();
+            } catch (Exception ex) {
+                result = "";
+                ex.printStackTrace();
+            }
+        }
+
+        return result;
     }
 
 }
