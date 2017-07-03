@@ -33,7 +33,7 @@ public class XdrUpdateService extends Service {
     protected long mSecInterval;
     protected int mLastIntervalHour;
     protected int mLastIntervalMin;
-    protected LocationData mLocationData;
+    public LocationData mLocationData;
     private boolean isRunning = false;
 
     @Override
@@ -42,7 +42,7 @@ public class XdrUpdateService extends Service {
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         isRunning = true;
-        mSecInterval = 60;
+        mSecInterval = 3600000;
         mLocationData = new LocationData();
     }
 
@@ -50,7 +50,7 @@ public class XdrUpdateService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         Toast.makeText(this, "XDRloc Service Started!", Toast.LENGTH_LONG).show();
-        writeLogToFile("XDRloc Service Started!\n");
+        //writeToFile("XDRloc Service Started!\n");
         Log.i(TAG, "Service onStartCommand");
         mStartTime = Calendar.getInstance();
         mCurrentTime = Calendar.getInstance();
@@ -92,40 +92,45 @@ public class XdrUpdateService extends Service {
     public void onDestroy() {
         isRunning = false;
         Toast.makeText(this, "XDRloc Service Stopped!", Toast.LENGTH_LONG).show();
-        writeLogToFile("XDRloc Service Stopped!\n");
+        //writeToFile("XDRloc Service Stopped!\n");
         Log.i(TAG, "Service onDestroy");
     }
 
     private void checkLocation() {
         try {
-            writeLogToFile("Check Location\n");
+            //writeToFile("Check Location\n");
             mCellLocation = (GsmCellLocation) mTelephonyManager.getCellLocation();
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
             if (mLastLocation != null) {
                 mLocationData.setmLastUpdateTime(System.currentTimeMillis());
-                writeLogToFile(mLocationData.getmLastUpdateTime().toString());
+                //writeToFile(mLocationData.getmLastUpdateTime().toString());
                 mLocationData.setmCellId(mCellLocation.getCid());
-                //writeLogToFile(mLocationData.getmCellId());
+                //writeToFile(String.valueOf(mLocationData.getmCellId()));
                 mLocationData.setmLac(mCellLocation.getLac());
+                //writeToFile(String.valueOf(mLocationData.getmLac()));
                 mLocationData.setmMCC(Integer.parseInt(networkOperation.substring(0, 3)));
+                //writeToFile(String.valueOf(mLocationData.getmMCC()));
                 mLocationData.setmMNC(Integer.parseInt(networkOperation.substring(3)));
+                //writeToFile(String.valueOf(mLocationData.getmMNC()));
                 mLocationData.setmImei(mTelephonyManager.getDeviceId());
+                //writeToFile(mLocationData.getmImei());
                 mLocationData.setmImsi(mTelephonyManager.getSubscriberId());
+                //writeToFile(mLocationData.getmImsi());
 
-                String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLocationData.getmLastUpdateTime().toString(), mLocationData.getmCellId(), mLocationData.getmLac(),
-                        mLocationData.getmMCC(), mLocationData.getmMNC(), mLocationData.getmImei(), mLocationData.getmImsi(), readMsidsnFromFile());
-                writeLogToFile("Test:::::"+mLocationData.getmLastUpdateTime().toString());
+//                String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLocationData.getmLastUpdateTime().toString(), mLocationData.getmCellId(), mLocationData.getmLac(),
+//                        mLocationData.getmMCC(), mLocationData.getmMNC(), mLocationData.getmImei(), mLocationData.getmImsi(), readMsidsnFromFile());
+//                writeToFile("Test:::::"+mLocationData.getmLastUpdateTime().toString());
                 mLocationData.writeLocationsOnSD();
             }
         } catch (Exception e) {
-            writeLogToFile(e.getMessage());
+//            writeToFile(e.getMessage());
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
             Log.e(TAG, e.getMessage());
         }
     }
 
-    private void writeLogToFile(String log) {
+    private void writeToFile(String log) {
         try {
             File outFile = new File("/sdcard/xdrloc/xdrloc_locations.txt");
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));

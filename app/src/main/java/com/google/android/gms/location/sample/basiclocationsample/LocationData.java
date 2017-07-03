@@ -128,7 +128,7 @@ public class LocationData {
         try {
             File outFile = new File(mOutputFilePath);
             String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLastUpdateTime.toString(), mCellId, mLac, mMCC, mMNC, mImei, mImsi, readMsidsnFromFile());
-            writeLogToFile("String"+body);
+//            writeLogToFile("String"+body);
             BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
             writer.write(body);
             writer.close();
@@ -178,15 +178,15 @@ public class LocationData {
         return result;
     }
 
-    private void writeLogToFile(String log)
-    {
-        try {
-            File outFile = new File("/sdcard/xdrloc/xdrloc_locations.txt");
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
-            writer.write(log);
-            writer.close();
-        } catch (IOException e) {
-            Log.e("ReadWriteFile", "Unable to write to the location to file.");
-        }
-    }
+//    private void writeLogToFile(String log)
+//    {
+//        try {
+//            File outFile = new File("/sdcard/xdrloc/xdrloc_locations.txt");
+//            BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true /*append*/));
+//            writer.write(log);
+//            writer.close();
+//        } catch (IOException e) {
+//            Log.e("ReadWriteFile", "Unable to write to the location to file.");
+//        }
+//    }
 }
