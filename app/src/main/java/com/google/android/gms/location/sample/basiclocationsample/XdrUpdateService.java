@@ -98,11 +98,12 @@ public class XdrUpdateService extends Service {
 
     private void checkLocation() {
         try {
-            //writeToFile("Check Location\n");
+//            writeToFile("*Check Location*\n");
             mCellLocation = (GsmCellLocation) mTelephonyManager.getCellLocation();
             mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             String networkOperation = mTelephonyManager.getNetworkOperator();
-            if (mLastLocation != null) {
+            if (mCellLocation != null) {
+//                writeToFile("mLastLocation not null");
                 mLocationData.setmLastUpdateTime(System.currentTimeMillis());
                 //writeToFile(mLocationData.getmLastUpdateTime().toString());
                 mLocationData.setmCellId(mCellLocation.getCid());
@@ -120,8 +121,10 @@ public class XdrUpdateService extends Service {
 
 //                String body = String.format("%s,%d,%d,%d,%d,%s,%s,%s;", mLocationData.getmLastUpdateTime().toString(), mLocationData.getmCellId(), mLocationData.getmLac(),
 //                        mLocationData.getmMCC(), mLocationData.getmMNC(), mLocationData.getmImei(), mLocationData.getmImsi(), readMsidsnFromFile());
-//                writeToFile("Test:::::"+mLocationData.getmLastUpdateTime().toString());
+//                writeToFile("Test:::::" + body);
                 mLocationData.writeLocationsOnSD();
+            } else {
+                //writeToFile("mLastLocation null");
             }
         } catch (Exception e) {
 //            writeToFile(e.getMessage());
