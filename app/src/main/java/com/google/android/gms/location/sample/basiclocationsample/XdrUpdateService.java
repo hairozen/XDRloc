@@ -62,18 +62,24 @@ public class XdrUpdateService extends Service {
             public void run() {
 
                 while (isRunning) {
-                    long currentMillis = mCurrentTime.getTimeInMillis();
-                    long startMillis = mStartTime.getTimeInMillis();
-                    long duration = TimeUnit.MILLISECONDS.toSeconds(currentMillis - startMillis);
-                    double res = duration % mSecInterval;
+//                    long currentMillis = mCurrentTime.getTimeInMillis();
+//                    long startMillis = mStartTime.getTimeInMillis();
+//                    long duration = TimeUnit.MILLISECONDS.toSeconds(currentMillis - startMillis);
+//                    double res = duration % mSecInterval;
 
-                    if (res == 0 && mCurrentTime.get(Calendar.MINUTE) != mLastIntervalMin) {
-                        mLastIntervalHour = Calendar.getInstance().get(Calendar.HOUR);
-                        mLastIntervalMin = Calendar.getInstance().get(Calendar.MINUTE);
+//                    if (res == 0 && mCurrentTime.get(Calendar.MINUTE) != mLastIntervalMin) {
+//                        mLastIntervalHour = Calendar.getInstance().get(Calendar.HOUR);
+//                        mLastIntervalMin = Calendar.getInstance().get(Calendar.MINUTE);
+
+                    try {
                         checkLocation();
+                        Thread.sleep(3600000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-
-                    mCurrentTime = Calendar.getInstance();
+//                    }
+//
+//                    mCurrentTime = Calendar.getInstance();
                 }
                 stopSelf();
             }
